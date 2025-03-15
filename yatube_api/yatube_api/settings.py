@@ -1,3 +1,4 @@
+"""Насторойки."""
 from pathlib import Path
 
 from datetime import timedelta
@@ -18,6 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'djoser',
     'api',
     'posts',
 ]
@@ -62,18 +64,23 @@ DATABASES = {
     }
 }
 
+name1 = 'django.contrib.auth.password_validation.' \
+        'UserAttributeSimilarityValidator'
+name2 = 'django.contrib.auth.password_validation.MinimumLengthValidator'
+name3 = 'django.contrib.auth.password_validation.CommonPasswordValidator'
+name4 = 'django.contrib.auth.password_validation.NumericPasswordValidator'
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': name1,
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': name2,
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': name3,
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': name4,
     },
 ]
 
@@ -90,11 +97,18 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
