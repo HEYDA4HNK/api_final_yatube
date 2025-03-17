@@ -11,7 +11,6 @@ from rest_framework import status, permissions, filters
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 
-
 class FollowViewSet(ModelViewSet):
     """Подписки."""
 
@@ -51,18 +50,6 @@ class GroupViewSet(ReadOnlyModelViewSet):
     serializer_class = GroupSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
 
-    def list(self, request):
-        """Получение групп."""
-        queryset = self.get_queryset()
-        serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk):
-        """Получение группы."""
-        group = get_object_or_404(self.get_queryset(), pk=pk)
-        serializer = self.serializer_class(group)
-        return Response(serializer.data)
-
 
 class PostList(ModelViewSet):
     """Посты."""
@@ -74,7 +61,7 @@ class PostList(ModelViewSet):
 
     def list(self, request):
         """Получение постов."""
-        queryset = self.queryset.all()
+        queryset = self.get_queryset()
         if (request.GET.get('offset') or request.GET.get('limit')):
             paginator = self.pagination_class()
             page = paginator.paginate_queryset(queryset, request)
@@ -89,12 +76,6 @@ class PostList(ModelViewSet):
             serializer = self.serializer_class(queryset, many=True)
             response_data = serializer.data
         return Response(response_data)
-
-    def retrieve(self, request, pk):
-        """Получение поста."""
-        object = get_object_or_404(self.get_queryset(), pk=pk)
-        serializer = self.serializer_class(object)
-        return Response(serializer.data)
 
     def create(self, request):
         """Создание поста."""
@@ -146,17 +127,15 @@ class CommentViewSet(ModelViewSet):
 
     def list(self, request, post_id):
         """Список комментариев."""
-        page = self.queryset.filter(post=post_id)
+        page = self.get_queryset().filter(post=post_id)
         serializer = self.serializer_class(page, many=True)
         return Response(serializer.data)
 
     def create(self, request, post_id):
         """Создание коммента."""
         get_object_or_404(Post.objects.all(), pk=post_id)
-        data = request.GET.copy()
+        data = request.POST.copy()
         data['post'] = post_id
-        for i in request.data:
-            data[i] = request.data[i]
         serializer = self.serializer_class(data=data)
         if (serializer.is_valid()):
             serializer.save(author=request.user)
@@ -181,10 +160,8 @@ class CommentViewSet(ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
         if (request.user != comment.author):
             return Response(status=status.HTTP_403_FORBIDDEN)
-        data = request.GET.copy()
+        data = request.POST.copy()
         data['post'] = post_id
-        for i in request.data:
-            data[i] = request.data[i]
         serializer = self.serializer_class(comment, data=data)
         if (serializer.is_valid()):
             serializer.save()
@@ -199,10 +176,8 @@ class CommentViewSet(ModelViewSet):
             return Response(status=status.HTTP_404_NOT_FOUND)
         if (request.user != comment.author):
             return Response(status=status.HTTP_403_FORBIDDEN)
-        data = request.GET.copy()
+        data = request.POST.copy()
         data['post'] = post_id
-        for i in request.data:
-            data[i] = request.data[i]
         serializer = self.serializer_class(comment, data=data, partial=True)
         if (serializer.is_valid()):
             serializer.save()
